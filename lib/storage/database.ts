@@ -95,6 +95,7 @@ export async function getPasswordsByCategory(category: string): Promise<Password
 export async function clearAllData(): Promise<void> {
   await db.passwords.clear();
   await db.masterPassword.clear();
+  console.log('All data cleared from Databsase');
 }
 
 // Export data to CSV

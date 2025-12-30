@@ -1,6 +1,6 @@
 'use client';
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Shield, Lock, Zap, Code, Github, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
@@ -19,6 +19,7 @@ export function AboutDialog({ isOpen, onClose }: AboutDialogProps) {
             <Logo size="lg" showText={false} />
             <div>
               <DialogTitle className="text-2xl md:text-3xl font-black">HackVault</DialogTitle>
+              <DialogDescription className="sr-only">About HackVault password manager</DialogDescription>
               <p className="text-sm text-black/70 dark:text-white/70">Version 1.0.0</p>
             </div>
           </div>
@@ -99,7 +100,7 @@ export function AboutDialog({ isOpen, onClose }: AboutDialogProps) {
 
           {/* GitHub Button */}
           <Button
-            onClick={() => window.open('https://github.com/yourusername/hackvault', '_blank')}
+            onClick={() => window.open('https://github.com/yuvakrishnas/hackvault', '_blank')}
             className="w-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 border-2 border-black dark:border-white font-bold py-4 md:py-6"
           >
             <Github className="h-5 w-5 mr-2" />

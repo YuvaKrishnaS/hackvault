@@ -22,7 +22,9 @@ import {
   Sun,
   Info,
   Lock,
-  Menu
+  Menu,
+  Settings,
+  Activity
 } from 'lucide-react';
 import { getAllPasswords, deletePassword } from '@/lib/storage/database';
 import { decryptData, base64ToUint8Array } from '@/lib/crypto/encryption';
@@ -30,11 +32,14 @@ import { DecryptedPasswordEntry } from '@/lib/types';
 import { useToast } from '@/components/ui/toast-simple';
 import { useTheme } from '@/lib/theme-context';
 import { syncPasswordsToLocalStorage } from '@/lib/extension-sync';
+import { autoLockManager } from '@/lib/auto-lock';
 import { AddPasswordDialog } from './add-password-dialog';
 import { EditPasswordDialog } from './edit-password-dialog';
 import { PasswordGeneratorDialog } from './password-generator-dialog';
 import { ExportImportDialog } from './export-import-dialog';
 import { AboutDialog } from '@/components/about-dialog';
+import { SettingsDialog } from '@/components/settings-dialog';
+import { HealthDashboard } from '@/components/health-dashboard';
 import { Footer } from '@/components/footer';
 import { Logo } from '@/components/logo';
 import { KeyboardShortcuts } from '@/components/keyboard-shortcuts';
@@ -52,6 +57,8 @@ export function VaultMain() {
   const [showGeneratorDialog, setShowGeneratorDialog] = useState(false);
   const [showExportImport, setShowExportImport] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showHealth, setShowHealth] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [editingPassword, setEditingPassword] = useState<DecryptedPasswordEntry | null>(null);
   const [visiblePasswords, setVisiblePasswords] = useState<Set<number>>(new Set());
@@ -95,6 +102,18 @@ export function VaultMain() {
   useEffect(() => {
     loadPasswords();
   }, [encryptionKey]);
+
+  // Setup auto-lock
+  useEffect(() => {
+    autoLockManager.start(() => {
+      showToast('Vault locked due to inactivity', 'info');
+      logout();
+    });
+
+    return () => {
+      autoLockManager.stop();
+    };
+  }, [logout]);
 
   // Filter passwords by search and category
   useEffect(() => {
@@ -212,6 +231,22 @@ export function VaultMain() {
             {/* Desktop Actions */}
             <div className="hidden lg:flex items-center gap-2">
               <Button
+                onClick={() => setShowHealth(true)}
+                variant="outline"
+                size="sm"
+                className="border-2 border-black dark:border-white font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition-all"
+              >
+                <Activity className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => setShowSettings(true)}
+                variant="outline"
+                size="sm"
+                className="border-2 border-black dark:border-white font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none transition-all"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+              <Button
                 onClick={() => setShowAbout(true)}
                 variant="outline"
                 size="sm"
@@ -275,6 +310,24 @@ export function VaultMain() {
           {/* Mobile Menu Dropdown */}
           {showMobileMenu && (
             <div className="lg:hidden mt-3 pb-3 border-t-2 border-black dark:border-white pt-3 space-y-2 animate-fadeIn">
+              <Button
+                onClick={() => { setShowHealth(true); setShowMobileMenu(false); }}
+                variant="outline"
+                size="sm"
+                className="w-full border-2 border-black dark:border-white font-bold justify-start"
+              >
+                <Activity className="h-4 w-4 mr-2" />
+                Password Health
+              </Button>
+              <Button
+                onClick={() => { setShowSettings(true); setShowMobileMenu(false); }}
+                variant="outline"
+                size="sm"
+                className="w-full border-2 border-black dark:border-white font-bold justify-start"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
               <Button
                 onClick={() => { setShowAbout(true); setShowMobileMenu(false); }}
                 variant="outline"
@@ -410,7 +463,7 @@ export function VaultMain() {
           </div>
         ) : filteredPasswords.length === 0 ? (
           <div className="text-center py-12 md:py-20 border-2 border-black dark:border-white bg-gray-50 dark:bg-[#2a2a2a] animate-fadeIn">
-            <div className="mb-6 animate-bounce">
+            <div className="mb-6">
               <Shield className="h-20 w-20 md:h-24 md:w-24 mx-auto text-black/20 dark:text-white/20" />
             </div>
             <h3 className="text-xl md:text-2xl font-black mb-2">
@@ -571,6 +624,25 @@ export function VaultMain() {
         <AboutDialog
           isOpen={showAbout}
           onClose={() => setShowAbout(false)}
+        />
+      )}
+
+      {showSettings && (
+        <SettingsDialog
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
+
+      {showHealth && (
+        <HealthDashboard
+          isOpen={showHealth}
+          onClose={() => setShowHealth(false)}
+          passwords={passwords}
+          onFixPassword={(id) => {
+            const password = passwords.find(p => p.id === id);
+            if (password) setEditingPassword(password);
+          }}
         />
       )}
     </div>

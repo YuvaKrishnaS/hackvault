@@ -1,10 +1,10 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
-import { 
-  deriveKey, 
+import {
+  deriveKey,
   base64ToUint8Array,
-  verifyMasterPassword as verifyPassword 
+  verifyMasterPassword,
 } from '@/lib/crypto/encryption';
 import { hasMasterPassword, getMasterPassword } from '@/lib/storage/database';
 
@@ -34,31 +34,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkSetup();
   }, [checkSetup]);
 
-  const login = useCallback(async (masterPassword: string): Promise<boolean> => {
+  const login = useCallback(async (password: string): Promise<boolean> => {
     try {
-        const masterData = await getMasterPassword();
-        if (!masterData) return false;
+      const stored = await getMasterPassword();
+      if (!stored) return false;
 
-        const isValid = await verifyPassword(
-            masterPassword,
-            masterData.salt,
-            masterData.hash
-        );
+      // Verify password hash
+      const isValid = await verifyMasterPassword(password, stored.hash);
+      if (!isValid) return false;
 
-        if (isValid) {
-            const salt = base64ToUint8Array(masterData.salt);
-            const key = await deriveKey(masterPassword, salt);
-            setEncryptionKey(key);
-            setIsAuthenticated(true);
-            return true;
-        }
+      // Derive encryption key
+      const salt = base64ToUint8Array(stored.salt);
+      const key = await deriveKey(password, salt);
 
-        return false;
+      setEncryptionKey(key);
+      setIsAuthenticated(true);
+      return true;
     } catch (error) {
-        console.error('Login error:', error);
-        return false;
+      console.error('Login failed:', error);
+      return false;
     }
   }, []);
+
 
 
   const logout = useCallback(() => {
