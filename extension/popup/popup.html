@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HackVault</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-content">
+        <div class="logo">
+          <img src="../assets/icon48.png" alt="HackVault" width="32" height="32">
+        </div>
+        <div>
+          <h1 class="title">HackVault</h1>
+          <p class="subtitle">Password Manager</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Not Connected State -->
+    <div id="notConnected" class="state">
+      <div class="empty-state">
+        <img src="../assets/icon48.png" alt="HackVault" width="48" height="48" style="opacity: 0.3; margin-bottom: 16px;">
+        <h3>Not Connected</h3>
+        <p>Please open HackVault web app first</p>
+        <button id="openWebApp" class="btn-primary">
+          Open HackVault
+        </button>
+      </div>
+    </div>
+
+    <!-- Password List State -->
+    <div id="passwordList" class="state hidden">
+      <!-- Search -->
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Search passwords...">
+      </div>
+
+      <!-- Current Site Info -->
+      <div id="currentSite" class="current-site hidden">
+        <div class="site-info">
+          <div class="site-icon">🌐</div>
+          <div>
+            <div class="site-url"></div>
+            <div class="site-count"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Passwords -->
+      <div id="passwords" class="password-list">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="footer-actions">
+        <button id="openVault" class="btn-secondary">
+          Open Vault
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="state">
+      <div class="loading-spinner"></div>
+      <p>Loading passwords...</p>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

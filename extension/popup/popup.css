@@ -1,0 +1,281 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 360px;
+  min-height: 400px;
+  max-height: 600px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #ffffff;
+  color: #000000;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Header */
+.header {
+  background: #000000;
+  color: #ffffff;
+  padding: 16px;
+  border-bottom: 3px solid #000000;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  background: #ffffff;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #000000;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  font-size: 11px;
+  opacity: 0.8;
+  font-weight: 600;
+}
+
+/* States */
+.state {
+  padding: 20px;
+}
+
+.state.hidden {
+  display: none;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.empty-state svg {
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+.empty-state h3 {
+  font-size: 16px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* Buttons */
+.btn-primary, .btn-secondary {
+  width: 100%;
+  padding: 12px 20px;
+  border: 2px solid #000000;
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary {
+  background: #000000;
+  color: #ffffff;
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+}
+
+.btn-primary:hover {
+  box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+  transform: translate(2px, 2px);
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: #000000;
+  margin-top: 12px;
+}
+
+.btn-secondary:hover {
+  background: #f5f5f5;
+}
+
+/* Search */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 2px solid #000000;
+  margin-bottom: 16px;
+  background: #ffffff;
+}
+
+.search-box svg {
+  opacity: 0.5;
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Current Site */
+.current-site {
+  background: #f5f5f5;
+  border: 2px solid #000000;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.site-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.site-icon {
+  font-size: 24px;
+}
+
+.site-url {
+  font-weight: 900;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.site-count {
+  font-size: 11px;
+  color: #666;
+  font-weight: 600;
+}
+
+/* Password List */
+.password-list {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.password-item {
+  border: 2px solid #000000;
+  padding: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #ffffff;
+}
+
+.password-item:hover {
+  background: #f5f5f5;
+  box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+}
+
+.password-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.password-title {
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.password-category {
+  font-size: 10px;
+  font-weight: 900;
+  background: #000000;
+  color: #ffffff;
+  padding: 3px 8px;
+  border: 2px solid #000000;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.password-username {
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.password-url {
+  font-size: 11px;
+  color: #999;
+  text-decoration: none;
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+  font-weight: 600;
+}
+
+/* Footer Actions */
+.footer-actions {
+  border-top: 2px solid #000000;
+  padding-top: 16px;
+  margin-top: 16px;
+}
+
+/* Loading */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #000000;
+  border-radius: 50%;
+  margin: 40px auto 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Scrollbar */
+.password-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.password-list::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border: 1px solid #000000;
+}
+
+.password-list::-webkit-scrollbar-thumb {
+  background: #000000;
+  border: 1px solid #000000;
+}
+
+.password-list::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}

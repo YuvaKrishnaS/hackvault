@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>HackVault Icon Generator</title>
+  <style>
+    body { font-family: monospace; padding: 40px; background: #f5f5f5; }
+    canvas { border: 2px solid black; margin: 10px; background: white; }
+    .container { display: flex; gap: 20px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <h1>HackVault Extension Icons</h1>
+  <p>Right-click each canvas and "Save image as..." to the extension/assets folder</p>
+  <div class="container">
+    <div>
+      <p>icon16.png</p>
+      <canvas id="icon16" width="16" height="16"></canvas>
+    </div>
+    <div>
+      <p>icon48.png</p>
+      <canvas id="icon48" width="48" height="48"></canvas>
+    </div>
+    <div>
+      <p>icon128.png</p>
+      <canvas id="icon128" width="128" height="128"></canvas>
+    </div>
+  </div>
+
+  <script>
+    function drawIcon(canvas) {
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+      const scale = size / 128;
+      
+      // Clear background
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, size, size);
+      
+      // Draw shield
+      ctx.fillStyle = 'black';
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 3 * scale;
+      
+      // Shield path
+      ctx.beginPath();
+      ctx.moveTo(64 * scale, 16 * scale);
+      ctx.lineTo(32 * scale, 28 * scale);
+      ctx.lineTo(32 * scale, 64 * scale);
+      ctx.quadraticCurveTo(32 * scale, 96 * scale, 64 * scale, 112 * scale);
+      ctx.quadraticCurveTo(96 * scale, 96 * scale, 96 * scale, 64 * scale);
+      ctx.lineTo(96 * scale, 28 * scale);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      
+      // Draw lock keyhole
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.arc(64 * scale, 58 * scale, 8 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.fillRect(60 * scale, 58 * scale, 8 * scale, 20 * scale);
+    }
+    
+    drawIcon(document.getElementById('icon16'));
+    drawIcon(document.getElementById('icon48'));
+    drawIcon(document.getElementById('icon128'));
+  </script>
+</body>
+</html>
