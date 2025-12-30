@@ -58,7 +58,7 @@ export async function deriveKey(
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: salt as BufferSource,
+      salt: salt.buffer,
       iterations: PBKDF2_ITERATIONS,
       hash: 'SHA-256',
     },
@@ -84,7 +84,7 @@ export async function encryptData(
   const encryptedBuffer = await crypto.subtle.encrypt(
     {
       name: ALGORITHM,
-      iv: iv as BufferSource,
+      iv: iv.buffer,
     },
     key,
     dataBuffer
@@ -104,10 +104,10 @@ export async function decryptData(
   const decryptedBuffer = await crypto.subtle.decrypt(
     {
       name: ALGORITHM,
-      iv: iv as BufferSource,
+      iv: iv.buffer,
     },
     key,
-    encryptedBuffer
+    encryptedBuffer.buffer
   );
 
   const decoder = new TextDecoder();
@@ -118,7 +118,7 @@ export async function decryptData(
 export async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data as BufferSource);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data.buffer);
   return uint8ArrayToBase64(new Uint8Array(hashBuffer));
 }
 
@@ -175,7 +175,7 @@ export async function exportKey(key: CryptoKey): Promise<Uint8Array> {
 export async function importKey(keyData: Uint8Array): Promise<CryptoKey> {
   return crypto.subtle.importKey(
     'raw',
-    keyData,
+    keyData.buffer,
     {
       name: ALGORITHM,
       length: KEY_LENGTH,
