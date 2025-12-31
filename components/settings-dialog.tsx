@@ -1,36 +1,29 @@
 'use client';
 
-import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/components/ui/toast-simple';
-import { Fingerprint, Moon, Sun, Trash2, Shield } from 'lucide-react';
+import { Fingerprint, Trash2, Shield } from 'lucide-react';
 
 interface SettingsDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  isDark: boolean;
-  toggleTheme: () => void;
 }
 
-export function SettingsDialog({ isOpen, onClose, isDark, toggleTheme }: SettingsDialogProps) {
-  const { biometricAvailable, biometricEnabled, enableBiometric, disableBiometric, login, logout } = useAuth();
+export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
+  const { biometricAvailable, biometricEnabled, enableBiometric, disableBiometric, login } = useAuth();
   const { showToast } = useToast();
-  const [isEnabling, setIsEnabling] = useState(false);
 
   const handleEnableBiometric = async () => {
     const password = prompt('Enter your master password to enable biometric authentication:');
     if (!password) return;
-
-    setIsEnabling(true);
 
     try {
       // First verify the password
       const loginSuccess = await login(password);
       if (!loginSuccess) {
         showToast('Invalid password', 'error');
-        setIsEnabling(false);
         return;
       }
 
@@ -44,8 +37,6 @@ export function SettingsDialog({ isOpen, onClose, isDark, toggleTheme }: Setting
     } catch (error) {
       showToast('Failed to enable biometric', 'error');
       console.error(error);
-    } finally {
-      setIsEnabling(false);
     }
   };
 
@@ -59,11 +50,7 @@ export function SettingsDialog({ isOpen, onClose, isDark, toggleTheme }: Setting
   };
 
   const handleResetVault = async () => {
-    if (!confirm('⚠️ DELETE ALL DATA? This action CANNOT be undone!\n\nType "DELETE" to confirm:')) {
-      return;
-    }
-
-    const confirmation = prompt('Type DELETE to confirm:');
+    const confirmation = prompt('⚠️ DELETE ALL DATA? This CANNOT be undone!\n\nType "DELETE" to confirm:');
     if (confirmation !== 'DELETE') {
       showToast('Reset cancelled', 'error');
       return;
@@ -89,28 +76,6 @@ export function SettingsDialog({ isOpen, onClose, isDark, toggleTheme }: Setting
         </DialogHeader>
 
         <div className="space-y-6 pt-4">
-          {/* Theme Toggle */}
-          <div className="space-y-3">
-            <h3 className="font-bold text-sm">Appearance</h3>
-            <Button
-              onClick={toggleTheme}
-              variant="outline"
-              className="w-full border-2 border-black dark:border-white font-bold justify-start"
-            >
-              {isDark ? (
-                <>
-                  <Sun className="h-4 w-4 mr-2" />
-                  Switch to Light Mode
-                </>
-              ) : (
-                <>
-                  <Moon className="h-4 w-4 mr-2" />
-                  Switch to Dark Mode
-                </>
-              )}
-            </Button>
-          </div>
-
           {/* Biometric Authentication */}
           {biometricAvailable && (
             <div className="space-y-3 p-4 border-2 border-black dark:border-white bg-gray-50 dark:bg-[#2a2a2a] rounded">
@@ -140,11 +105,10 @@ export function SettingsDialog({ isOpen, onClose, isDark, toggleTheme }: Setting
               {!biometricEnabled ? (
                 <Button
                   onClick={handleEnableBiometric}
-                  disabled={isEnabling}
-                  className="w-full bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 border-2 border-black dark:border-white font-bold"
+                  className="w-full bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 border-2 border-black dark:border-white font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
                 >
                   <Fingerprint className="h-4 w-4 mr-2" />
-                  {isEnabling ? 'Enabling...' : 'Enable Biometric Unlock'}
+                  Enable Biometric Unlock
                 </Button>
               ) : (
                 <Button
@@ -190,7 +154,7 @@ export function SettingsDialog({ isOpen, onClose, isDark, toggleTheme }: Setting
           {/* Close Button */}
           <Button
             onClick={onClose}
-            className="w-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 border-2 border-black dark:border-white font-bold"
+            className="w-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 border-2 border-black dark:border-white font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
           >
             Close Settings
           </Button>
