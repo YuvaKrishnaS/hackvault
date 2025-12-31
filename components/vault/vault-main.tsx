@@ -22,6 +22,11 @@ import {
   Sun,
   Info,
   Lock,
+  Puzzle,
+  Zap,
+  Boxes,
+  Link,
+  Plug,
   Menu,
   Settings,
   Activity
@@ -352,7 +357,7 @@ export function VaultMain() {
                 size="sm"
                 className="w-full border-2 border-black dark:border-white font-bold justify-start"
               >
-                <Download className="h-4 w-4 mr-2" />
+                <Puzzle className="h-4 w-4 mr-2" />
                 Sync Extension
               </Button>
               <Button
