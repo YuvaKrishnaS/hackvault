@@ -74,29 +74,29 @@ export function Login() {
         <CardContent className="space-y-6 pt-6">
           {/* Biometric Login Button */}
           {biometricAvailable && biometricEnabled && (
-            <Button
-              type="button"
-              onClick={handleBiometricLogin}
-              disabled={isLoggingIn}
-              className="w-full bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 border-2 border-black dark:border-white font-bold py-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
-            >
-              <Fingerprint className="h-5 w-5 mr-2" />
-              {isLoggingIn ? 'Authenticating...' : 'Unlock with Biometric'}
-            </Button>
-          )}
+            <>
+              <Button
+                type="button"
+                onClick={handleBiometricLogin}
+                disabled={isLoggingIn}
+                className="w-full bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 border-2 border-black dark:border-white font-bold py-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
+              >
+                <Fingerprint className="h-5 w-5 mr-2" />
+                {isLoggingIn ? 'Authenticating...' : 'Unlock with Biometric'}
+              </Button>
 
-          {/* Divider */}
-          {biometricAvailable && biometricEnabled && (
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t-2 border-black/20 dark:border-white/20"></div>
+              {/* Divider */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t-2 border-black/20 dark:border-white/20"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-white dark:bg-[#1a1a1a] text-black/60 dark:text-white/60 font-bold">
+                    OR USE PASSWORD
+                  </span>
+                </div>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white dark:bg-[#1a1a1a] text-black/60 dark:text-white/60 font-bold">
-                  OR USE PASSWORD
-                </span>
-              </div>
-            </div>
+            </>
           )}
 
           {/* Password Form */}

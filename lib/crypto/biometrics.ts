@@ -10,6 +10,8 @@ interface BiometricCredential {
 
 // Check if biometrics are available
 export async function isBiometricAvailable(): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  
   if (!window.PublicKeyCredential) {
     return false;
   }
@@ -59,7 +61,7 @@ export async function registerBiometric(username: string): Promise<BiometricCred
     
     return {
       id: credentialId,
-      publicKey: credentialId, // Simplified for local storage
+      publicKey: credentialId,
     };
   } catch (error) {
     console.error('Biometric registration failed:', error);
@@ -97,12 +99,14 @@ export async function verifyBiometric(credentialId: string): Promise<boolean> {
 
 // Save biometric preference
 export function saveBiometricCredential(credentialId: string): void {
+  if (typeof window === 'undefined') return;
   localStorage.setItem('hackvault_biometric_id', credentialId);
   localStorage.setItem('hackvault_biometric_enabled', 'true');
 }
 
 // Get saved biometric credential
 export function getBiometricCredential(): string | null {
+  if (typeof window === 'undefined') return null;
   const enabled = localStorage.getItem('hackvault_biometric_enabled');
   if (enabled !== 'true') return null;
   return localStorage.getItem('hackvault_biometric_id');
@@ -110,6 +114,7 @@ export function getBiometricCredential(): string | null {
 
 // Disable biometric
 export function disableBiometric(): void {
+  if (typeof window === 'undefined') return;
   localStorage.removeItem('hackvault_biometric_id');
   localStorage.removeItem('hackvault_biometric_enabled');
 }
