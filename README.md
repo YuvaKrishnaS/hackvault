@@ -150,6 +150,7 @@ npm run start
 | **Create Master Password** | ![Create Master password](./docs/screenshots/master_password.png) 
 | **Enter Master Password** | ![Enter Master password](./docs/screenshots/enter_master.png) |
 | **Onboardig Welcome** | ![Welcome screen](./docs/screenshots/dashboard.png) |
+| **Password generator** | ![Password generator](./docs/screenshots/password_generator.png) |
 | **Vault Dashboard** | ![Vault Dashboard](./docs/screenshots/dashboard.png) |
 | **Security Settings** | ![Settings](./docs/screenshots/settings.png) |
 
