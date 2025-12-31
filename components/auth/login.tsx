@@ -1,134 +1,153 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Shield, Eye, EyeOff, Lock } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { useAuth } from '@/lib/auth-context';
+import { Eye, EyeOff, Lock, Fingerprint } from 'lucide-react';
 import { Logo } from '@/components/logo';
-import { loginRateLimiter } from '@/lib/rate-limiter';
 
 export function Login() {
-  const { login } = useAuth();
+  const { login, loginWithBiometric, biometricAvailable, biometricEnabled } = useAuth();
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    // Check rate limit
-    if (loginRateLimiter.isBlocked()) {
-      setError(`Too many failed attempts. Try again in ${loginRateLimiter.getRemainingTimeString()}`);
-      return;
-    }
 
     if (!password) {
       setError('Please enter your master password');
       return;
     }
 
-    setIsLoading(true);
+    setIsLoggingIn(true);
 
     try {
-      const result = await login(password);
+      const success = await login(password);
       
-      if (result) {
-        loginRateLimiter.reset(); // Reset on successful login
-      } else {
-        // Record failed attempt
-        const limitResult = loginRateLimiter.recordAttempt();
-        
-        if (!limitResult.allowed) {
-          setError(`Too many failed attempts. Locked for ${loginRateLimiter.getRemainingTimeString()}`);
-        } else {
-          setError(`Incorrect master password. ${limitResult.remainingAttempts} attempt${limitResult.remainingAttempts !== 1 ? 's' : ''} remaining.`);
-        }
+      if (!success) {
+        setError('Incorrect master password');
+        setPassword('');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError('Login failed. Please try again.');
+      console.error(err);
     } finally {
-      setIsLoading(false);
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    setError('');
+    setIsLoggingIn(true);
+
+    try {
+      const success = await loginWithBiometric();
+      
+      if (!success) {
+        setError('Biometric authentication failed. Please use your password.');
+      }
+    } catch (err) {
+      setError('Biometric login failed. Please use your password.');
+      console.error(err);
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#1a1a1a] flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="border-2 border-black dark:border-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] bg-white dark:bg-[#1a1a1a]">
-          <div className="flex items-center gap-3 mb-8">
+      <Card className="w-full max-w-md border-2 border-black dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
+        <CardHeader className="space-y-2 border-b-2 border-black dark:border-white">
+          <div className="flex items-center gap-3">
             <Logo size="lg" showText={true} />
           </div>
-
-          <h2 className="text-2xl font-black mb-2">Welcome Back</h2>
-          <p className="text-sm text-black/70 dark:text-white/70 mb-6">
+          <p className="text-sm text-black/60 dark:text-white/60">
             Enter your master password to unlock your vault
           </p>
+        </CardHeader>
 
-          {error && (
-            <div className="mb-4 p-3 border-2 border-red-600 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-bold">
-              {error}
+        <CardContent className="space-y-6 pt-6">
+          {/* Biometric Login Button */}
+          {biometricAvailable && biometricEnabled && (
+            <Button
+              type="button"
+              onClick={handleBiometricLogin}
+              disabled={isLoggingIn}
+              className="w-full bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 border-2 border-black dark:border-white font-bold py-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
+            >
+              <Fingerprint className="h-5 w-5 mr-2" />
+              {isLoggingIn ? 'Authenticating...' : 'Unlock with Biometric'}
+            </Button>
+          )}
+
+          {/* Divider */}
+          {biometricAvailable && biometricEnabled && (
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t-2 border-black/20 dark:border-white/20"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white dark:bg-[#1a1a1a] text-black/60 dark:text-white/60 font-bold">
+                  OR USE PASSWORD
+                </span>
+              </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-bold mb-2">Master Password</label>
+          {/* Password Form */}
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-bold">Master Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/50 dark:text-white/50" />
                 <Input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 border-2 border-black dark:border-white font-medium"
                   placeholder="Enter your master password"
-                  disabled={isLoading}
+                  className="pr-10 border-2 border-black dark:border-white font-mono"
+                  disabled={isLoggingIn}
                   autoFocus
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2"
-                  tabIndex={-1}
+                  disabled={isLoggingIn}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-black/50 dark:text-white/50" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-black/50 dark:text-white/50" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="p-3 border-2 border-red-600 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium">
+                {error}
+              </div>
+            )}
+
+            {/* Login Button */}
             <Button
               type="submit"
-              disabled={isLoading}
-              className="w-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 border-2 border-black dark:border-white font-bold py-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!password || isLoggingIn}
+              className="w-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 border-2 border-black dark:border-white font-bold py-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Unlocking...' : 'Unlock Vault'}
+              {isLoggingIn ? 'Unlocking...' : 'Unlock Vault'}
             </Button>
           </form>
 
-          <div className="mt-6 p-4 border-2 border-black dark:border-white bg-gray-50 dark:bg-[#2a2a2a]">
-            <div className="flex items-start gap-2">
-              <Shield className="h-5 w-5 flex-shrink-0 mt-0.5" />
-              <div className="text-xs">
-                <p className="font-bold mb-1">Security Note:</p>
-                <p className="text-black/70 dark:text-white/70">
-                  Your master password is never stored or sent anywhere. If you forget it, 
-                  your data cannot be recovered.
-                </p>
-              </div>
-            </div>
+          {/* Security Note */}
+          <div className="text-xs text-black/60 dark:text-white/60 text-center pt-2 border-t-2 border-black/20 dark:border-white/20">
+            <Lock className="h-3 w-3 inline mr-1" />
+            Your password is never sent or stored anywhere
           </div>
-        </div>
-
-        <p className="text-center text-xs text-black/50 dark:text-white/50 mt-6">
-          Built with hardwork by Krishna Naveen
-        </p>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

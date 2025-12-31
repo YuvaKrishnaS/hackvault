@@ -1,232 +1,199 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { autoLockManager } from '@/lib/auto-lock';
-import { Shield, Clock, Bell, Trash2, Download } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/components/ui/toast-simple';
-import { clearAllData } from '@/lib/storage/database';
+import { Fingerprint, Moon, Sun, Trash2, Shield } from 'lucide-react';
 
 interface SettingsDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  isDark: boolean;
+  toggleTheme: () => void;
 }
 
-export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
+export function SettingsDialog({ isOpen, onClose, isDark, toggleTheme }: SettingsDialogProps) {
+  const { biometricAvailable, biometricEnabled, enableBiometric, disableBiometric, login, logout } = useAuth();
   const { showToast } = useToast();
-  const [autoLockEnabled, setAutoLockEnabled] = useState(true);
-  const [autoLockMinutes, setAutoLockMinutes] = useState(30);
-  const [showNotifications, setShowNotifications] = useState(true);
+  const [isEnabling, setIsEnabling] = useState(false);
 
-  useEffect(() => {
-    const settings = autoLockManager.getSettings();
-    setAutoLockEnabled(settings.enabled);
-    setAutoLockMinutes(Math.floor(settings.timeoutDuration / 60000));
+  const handleEnableBiometric = async () => {
+    const password = prompt('Enter your master password to enable biometric authentication:');
+    if (!password) return;
 
-    const notifPref = localStorage.getItem('hackvault_notifications');
-    setShowNotifications(notifPref !== 'false');
-  }, [isOpen]);
+    setIsEnabling(true);
 
-  const handleAutoLockToggle = (enabled: boolean) => {
-    setAutoLockEnabled(enabled);
-    autoLockManager.setEnabled(enabled);
-    showToast(enabled ? 'Auto-lock enabled' : 'Auto-lock disabled', 'success');
+    try {
+      // First verify the password
+      const loginSuccess = await login(password);
+      if (!loginSuccess) {
+        showToast('Invalid password', 'error');
+        setIsEnabling(false);
+        return;
+      }
+
+      // Then enable biometric
+      const enabled = await enableBiometric(password);
+      if (enabled) {
+        showToast('Biometric unlock enabled successfully!', 'success');
+      } else {
+        showToast('Failed to enable biometric. Please try again.', 'error');
+      }
+    } catch (error) {
+      showToast('Failed to enable biometric', 'error');
+      console.error(error);
+    } finally {
+      setIsEnabling(false);
+    }
   };
 
-  const handleAutoLockMinutesChange = (minutes: number) => {
-    setAutoLockMinutes(minutes);
-    autoLockManager.setTimeoutDuration(minutes * 60 * 1000);
-    showToast(`Auto-lock set to ${minutes} minutes`, 'success');
-  };
-
-  const handleNotificationsToggle = (enabled: boolean) => {
-    setShowNotifications(enabled);
-    localStorage.setItem('hackvault_notifications', enabled.toString());
-    showToast(enabled ? 'Notifications enabled' : 'Notifications disabled', 'success');
-  };
-
-  const handleClearAllData = async () => {
-    if (!confirm('⚠️ This will delete ALL your passwords permanently!\n\nThis action cannot be undone. Are you absolutely sure?')) {
+  const handleDisableBiometric = () => {
+    if (!confirm('Disable biometric unlock? You will need to use your master password to login.')) {
       return;
     }
 
-    if (!confirm('Last chance! Type "DELETE" in the next prompt to confirm.')) {
+    disableBiometric();
+    showToast('Biometric unlock disabled', 'success');
+  };
+
+  const handleResetVault = async () => {
+    if (!confirm('⚠️ DELETE ALL DATA? This action CANNOT be undone!\n\nType "DELETE" to confirm:')) {
       return;
     }
 
     const confirmation = prompt('Type DELETE to confirm:');
     if (confirmation !== 'DELETE') {
-      showToast('Deletion cancelled', 'info');
+      showToast('Reset cancelled', 'error');
       return;
     }
 
     try {
-      await clearAllData();
+      await window.indexedDB.deleteDatabase('HackVaultDB');
       localStorage.clear();
-      showToast('All data cleared successfully', 'success');
+      showToast('Vault reset complete. Reloading...', 'success');
       setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
-      showToast('Failed to clear data', 'error');
+      showToast('Failed to reset vault', 'error');
+      console.error(error);
     }
-  };
-
-  const exportSettings = () => {
-    const settings = {
-      autoLockEnabled,
-      autoLockMinutes,
-      showNotifications,
-      exportedAt: new Date().toISOString(),
-    };
-
-    const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `hackvault-settings-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Settings exported', 'success');
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-2 border-black dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+      <DialogContent className="max-w-md border-2 border-black dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
         <DialogHeader className="border-b-2 border-black dark:border-white pb-4">
           <DialogTitle className="text-2xl font-black">Settings</DialogTitle>
-          <DialogDescription className="sr-only">Configure HackVault settings</DialogDescription>
+          <DialogDescription className="sr-only">Manage your vault settings</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 pt-4">
-          {/* Security Settings */}
-          <div className="border-2 border-black dark:border-white p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Shield className="h-5 w-5" />
-              <h3 className="text-lg font-black">Security</h3>
-            </div>
+          {/* Theme Toggle */}
+          <div className="space-y-3">
+            <h3 className="font-bold text-sm">Appearance</h3>
+            <Button
+              onClick={toggleTheme}
+              variant="outline"
+              className="w-full border-2 border-black dark:border-white font-bold justify-start"
+            >
+              {isDark ? (
+                <>
+                  <Sun className="h-4 w-4 mr-2" />
+                  Switch to Light Mode
+                </>
+              ) : (
+                <>
+                  <Moon className="h-4 w-4 mr-2" />
+                  Switch to Dark Mode
+                </>
+              )}
+            </Button>
+          </div>
 
-            <div className="space-y-4">
-              {/* Auto-Lock */}
+          {/* Biometric Authentication */}
+          {biometricAvailable && (
+            <div className="space-y-3 p-4 border-2 border-black dark:border-white bg-gray-50 dark:bg-[#2a2a2a] rounded">
               <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <Label className="font-bold">Auto-Lock Vault</Label>
-                  <p className="text-xs text-black/60 dark:text-white/60">
-                    Automatically lock after inactivity
+                <div>
+                  <h3 className="font-bold text-sm flex items-center gap-2">
+                    <Fingerprint className="h-4 w-4" />
+                    Biometric Unlock
+                  </h3>
+                  <p className="text-xs text-black/60 dark:text-white/60 mt-1">
+                    Use fingerprint or Face ID to unlock vault
                   </p>
                 </div>
-                <Switch
-                  checked={autoLockEnabled}
-                  onCheckedChange={handleAutoLockToggle}
-                />
+                <div className="flex items-center gap-2">
+                  {biometricEnabled ? (
+                    <span className="text-green-600 dark:text-green-400 font-bold text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 border border-green-600 dark:border-green-400 rounded">
+                      Enabled
+                    </span>
+                  ) : (
+                    <span className="text-gray-500 dark:text-gray-400 font-bold text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 border border-gray-400 rounded">
+                      Disabled
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* Auto-Lock Duration */}
-              {autoLockEnabled && (
-                <div>
-                  <Label className="font-bold">Lock After (minutes)</Label>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Input
-                      type="number"
-                      min="1"
-                      max="120"
-                      value={autoLockMinutes}
-                      onChange={(e) => handleAutoLockMinutesChange(parseInt(e.target.value) || 1)}
-                      className="w-24 border-2 border-black dark:border-white font-bold"
-                    />
-                    <Clock className="h-4 w-4" />
-                  </div>
-                  <p className="text-xs text-black/60 dark:text-white/60 mt-1">
-                    Recommended: 15-30 minutes
-                  </p>
-                </div>
+              {!biometricEnabled ? (
+                <Button
+                  onClick={handleEnableBiometric}
+                  disabled={isEnabling}
+                  className="w-full bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 border-2 border-black dark:border-white font-bold"
+                >
+                  <Fingerprint className="h-4 w-4 mr-2" />
+                  {isEnabling ? 'Enabling...' : 'Enable Biometric Unlock'}
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleDisableBiometric}
+                  variant="outline"
+                  className="w-full border-2 border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 font-bold"
+                >
+                  Disable Biometric Unlock
+                </Button>
               )}
             </div>
-          </div>
+          )}
 
-          {/* Notification Settings */}
-          <div className="border-2 border-black dark:border-white p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Bell className="h-5 w-5" />
-              <h3 className="text-lg font-black">Notifications</h3>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <Label className="font-bold">Show Notifications</Label>
-                <p className="text-xs text-black/60 dark:text-white/60">
-                  Display copy and sync confirmations
+          {/* Security Info */}
+          <div className="p-4 border-2 border-black dark:border-white bg-blue-50 dark:bg-blue-900/20 rounded">
+            <div className="flex gap-2 items-start">
+              <Shield className="h-5 w-5 flex-shrink-0 mt-0.5 text-blue-600 dark:text-blue-400" />
+              <div className="text-sm">
+                <p className="font-bold mb-1">Zero-Knowledge Security</p>
+                <p className="text-black/70 dark:text-white/70 text-xs">
+                  All encryption happens locally on your device. Your master password and data never leave your browser.
                 </p>
               </div>
-              <Switch
-                checked={showNotifications}
-                onCheckedChange={handleNotificationsToggle}
-              />
-            </div>
-          </div>
-
-          {/* Data Management */}
-          <div className="border-2 border-black dark:border-white p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Download className="h-5 w-5" />
-              <h3 className="text-lg font-black">Data Management</h3>
-            </div>
-
-            <div className="space-y-3">
-              <Button
-                onClick={exportSettings}
-                variant="outline"
-                className="w-full border-2 border-black dark:border-white font-bold justify-start"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export Settings
-              </Button>
             </div>
           </div>
 
           {/* Danger Zone */}
-          <div className="border-2 border-red-600 dark:border-red-500 p-4 bg-red-50 dark:bg-red-900/10">
-            <div className="flex items-center gap-2 mb-4">
-              <Trash2 className="h-5 w-5 text-red-600 dark:text-red-500" />
-              <h3 className="text-lg font-black text-red-600 dark:text-red-500">Danger Zone</h3>
-            </div>
-
+          <div className="space-y-3 pt-4 border-t-2 border-red-600">
+            <h3 className="font-bold text-sm text-red-600">Danger Zone</h3>
             <Button
-              onClick={handleClearAllData}
+              onClick={handleResetVault}
               variant="outline"
-              className="w-full border-2 border-red-600 dark:border-red-500 font-bold text-red-600 dark:text-red-500 hover:bg-red-600 hover:text-white"
+              className="w-full border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white font-bold"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete All Data
+              Reset Vault (Delete All Data)
             </Button>
-            <p className="text-xs text-red-600 dark:text-red-500 mt-2">
-              ⚠️ This will permanently delete all passwords and settings. This cannot be undone!
+            <p className="text-xs text-red-600 dark:text-red-400">
+              ⚠️ This will permanently delete all passwords and settings. This action cannot be undone.
             </p>
           </div>
 
-          {/* App Info */}
-          <div className="border-t-2 border-black dark:border-white pt-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="font-bold text-black/60 dark:text-white/60">Version</p>
-                <p className="font-black">1.0.0</p>
-              </div>
-              <div>
-                <p className="font-bold text-black/60 dark:text-white/60">Encryption</p>
-                <p className="font-black">AES-256-GCM</p>
-              </div>
-              <div>
-                <p className="font-bold text-black/60 dark:text-white/60">Storage</p>
-                <p className="font-black">IndexedDB</p>
-              </div>
-              <div>
-                <p className="font-bold text-black/60 dark:text-white/60">Iterations</p>
-                <p className="font-black">600,000</p>
-              </div>
-            </div>
-          </div>
+          {/* Close Button */}
+          <Button
+            onClick={onClose}
+            className="w-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 border-2 border-black dark:border-white font-bold"
+          >
+            Close Settings
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
