@@ -631,6 +631,7 @@ export function VaultMain() {
           onClose={() => setShowAbout(false)}
         />
       )}
+      //vhrvk
 
       {showSettings && (
         <SettingsDialog
